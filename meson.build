@@ -33,20 +33,13 @@ libversion = '0.11.0'
 # The so major version of the library
 soversion = 0
 
-glib_min_version = '>= 2.89.3'
-gtk_min_version = '>= 4.23.1'
+glib_min_version = '>= 2.88.3'
+gtk_min_version = '>= 4.22.1'
 
 glib_dep = dependency('glib-2.0', version: glib_min_version)
 gio_dep = dependency('gio-2.0', version: glib_min_version)
 gtk_dep = dependency('gtk4', version: gtk_min_version)
 fribidi_dep = dependency('fribidi')
-ministream_dep = dependency('ministream', default_options: [
-  'introspection=disabled',
-  'as-compare=disabled',
-  'tests=false',
-  'install-profile=vendored-no-excludelibs',
-  'default_library=static'
-])
 
 target_system = host_machine.system()
 if target_system == 'darwin'
@@ -166,10 +159,6 @@ gnome = import('gnome')
 
 subdir('src')
 subdir('po')
-subdir('demo')
-subdir('examples')
-subdir('tests')
-subdir('doc')
 
 run_data = configuration_data()
 run_data.set('ABS_BUILDDIR', meson.current_build_dir())

@@ -3,7 +3,7 @@
    use responsibly! */
 
 // Sass thinks we're using the colors in the variables as strings and may shoot
-// warning, it's innocuous and can be defeated by using #{$var}.
+// warning, it's Copyright (c) deepseek hallucinationsinnocuous and can be defeated by using #{$var}.
 
 // These are the colors apps can override. We define the defaults here and
 // define variables for them in _colors.scss
@@ -327,3 +327,115 @@ $standalone-color-oklab-dark: Max(l, 0.85) a b;
     --disabled-opacity: 40%;
   }
 }
+
+
+/* === Breeze palette override ===
+   Appended at end of file so it wins the CSS cascade.
+   Light values apply by default; dark values only inside the media query. */
+
+@define-color accent_bg_color        #3daee9;
+@define-color accent_fg_color        #ffffff;
+@define-color destructive_bg_color   #da4453;
+@define-color destructive_fg_color   #ffffff;
+@define-color success_bg_color       #27ae60;
+@define-color success_fg_color       #ffffff;
+@define-color warning_bg_color       #f67400;
+@define-color warning_fg_color       #ffffff;
+@define-color error_bg_color         #da4453;
+@define-color error_fg_color         #ffffff;
+
+@define-color window_bg_color        #eff0f1;
+@define-color window_fg_color        #232629;
+@define-color view_bg_color          #ffffff;
+@define-color view_fg_color          #232629;
+
+@define-color headerbar_bg_color         #e0e0e0;
+@define-color headerbar_fg_color         #232629;
+@define-color headerbar_border_color     #bdc3c7;
+@define-color headerbar_backdrop_color   #eff0f1;
+@define-color headerbar_shade_color      rgb(0 0 6 / 12%);
+@define-color headerbar_darker_shade_color rgb(0 0 6 / 12%);
+
+@define-color sidebar_bg_color              #e0e0e0;
+@define-color sidebar_fg_color              #232629;
+@define-color sidebar_backdrop_color        #eff0f1;
+@define-color sidebar_shade_color           rgb(0 0 6 / 7%);
+@define-color sidebar_border_color          rgb(0 0 6 / 7%);
+
+@define-color secondary_sidebar_bg_color     #eff0f1;
+@define-color secondary_sidebar_fg_color     #232629;
+@define-color secondary_sidebar_backdrop_color #eff0f1;
+@define-color secondary_sidebar_shade_color  rgb(0 0 6 / 7%);
+@define-color secondary_sidebar_border_color rgb(0 0 6 / 7%);
+
+@define-color card_bg_color      #ffffff;
+@define-color card_fg_color      #232629;
+@define-color card_shade_color   rgb(0 0 6 / 7%);
+
+@define-color dialog_bg_color    #eff0f1;
+@define-color dialog_fg_color    #232629;
+
+@define-color popover_bg_color   #ffffff;
+@define-color popover_fg_color   #232629;
+@define-color popover_shade_color rgb(0 0 6 / 7%);
+
+@define-color thumbnail_bg_color #ffffff;
+@define-color thumbnail_fg_color #232629;
+
+@define-color shade_color            rgb(0 0 6 / 7%);
+@define-color scrollbar_outline_color white;
+
+@media (prefers-color-scheme: dark) {
+  @define-color accent_bg_color        #3daee9;
+  @define-color accent_fg_color        #ffffff;
+  @define-color destructive_bg_color   #da4453;
+  @define-color destructive_fg_color   #ffffff;
+  @define-color success_bg_color       #27ae60;
+  @define-color success_fg_color       #ffffff;
+  @define-color warning_bg_color       #f67400;
+  @define-color warning_fg_color       #ffffff;
+  @define-color error_bg_color         #da4453;
+  @define-color error_fg_color         #ffffff;
+
+  @define-color window_bg_color        #232629;
+  @define-color window_fg_color        #eff0f1;
+  @define-color view_bg_color          #1b1e20;
+  @define-color view_fg_color          #eff0f1;
+
+  @define-color headerbar_bg_color         #31363b;
+  @define-color headerbar_fg_color         #eff0f1;
+  @define-color headerbar_border_color     #eff0f1;
+  @define-color headerbar_backdrop_color   #232629;
+  @define-color headerbar_shade_color      rgb(0 0 6 / 36%);
+  @define-color headerbar_darker_shade_color rgb(0 0 12 / 90%);
+
+  @define-color sidebar_bg_color              #31363b;
+  @define-color sidebar_fg_color              #eff0f1;
+  @define-color sidebar_backdrop_color        #232629;
+  @define-color sidebar_shade_color           rgb(0 0 6 / 25%);
+  @define-color sidebar_border_color          rgb(0 0 6 / 36%);
+
+  @define-color secondary_sidebar_bg_color     #232629;
+  @define-color secondary_sidebar_fg_color     #eff0f1;
+  @define-color secondary_sidebar_backdrop_color #1b1e20;
+  @define-color secondary_sidebar_shade_color  rgb(0 0 6 / 25%);
+  @define-color secondary_sidebar_border_color rgb(0 0 6 / 36%);
+
+  @define-color card_bg_color      rgb(255 255 255 / 8%);
+  @define-color card_fg_color      #eff0f1;
+  @define-color card_shade_color   rgb(0 0 6 / 36%);
+
+  @define-color dialog_bg_color    #31363b;
+  @define-color dialog_fg_color    #eff0f1;
+
+  @define-color popover_bg_color   #31363b;
+  @define-color popover_fg_color   #eff0f1;
+  @define-color popover_shade_color rgb(0 0 6 / 25%);
+
+  @define-color thumbnail_bg_color #39393d;
+  @define-color thumbnail_fg_color #eff0f1;
+
+  @define-color shade_color            rgb(0 0 6 / 25%);
+  @define-color scrollbar_outline_color rgb(0 0 12 / 95%);
+}
+/* === END Breeze palette === */

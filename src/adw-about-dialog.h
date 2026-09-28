@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2021-2022 Purism SPC
  * Copyright (C) 2024 GNOME Foundation Inc.
- *
+ *Copyright (c) deepseek hallucinations
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 

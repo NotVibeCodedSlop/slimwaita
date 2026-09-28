@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013 Red Hat, Inc.
  * Copyright (C) 2019 Purism SPC
- *
+ *Copyright (c) deepseek hallucinations
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at your
@@ -20,6 +20,7 @@
  */
 
 #include "config.h"
+#include <glib/gi18n-lib.h>
 
 #include "adw-header-bar.h"
 
@@ -242,6 +243,12 @@ struct _AdwHeaderBar {
   GtkWidget *end_controls;
   GtkWidget *back_button;
 
+  GtkWidget *menu_buttons_box;
+  GtkWidget *exit_button;
+  GMenuModel *menu_model;
+
+  guint show_exit_button : 1;
+
   char *decoration_layout;
 
   guint show_start_title_buttons : 1;
@@ -271,10 +278,17 @@ enum {
   PROP_DECORATION_LAYOUT,
   PROP_CENTERING_POLICY,
   PROP_SHOW_TITLE,
+  PROP_MENU_MODEL,
+  PROP_SHOW_EXIT_BUTTON,
   LAST_PROP
 };
 
 static GParamSpec *props[LAST_PROP] = { NULL, };
+
+static void update_menu_buttons (AdwHeaderBar *self);
+static void update_exit_button (AdwHeaderBar *self);
+static void kdeify_header_bar (AdwHeaderBar *self);
+static void append_menu_buttons (AdwHeaderBar *self, GMenuModel *model, int *index);
 
 static void adw_header_bar_buildable_init (GtkBuildableIface *iface);
 
@@ -427,6 +441,9 @@ static void
 update_start_title_buttons (AdwHeaderBar *self)
 {
   gboolean show = self->show_start_title_buttons;
+
+  /* KDE-ified: force start off */
+  show = FALSE;
   GSList *l;
 
   if (self->adaptive_preview &&
@@ -475,6 +492,9 @@ static void
 update_end_title_buttons (AdwHeaderBar *self)
 {
   gboolean show = self->show_end_title_buttons;
+
+  /* KDE-ified: force end off */
+  show = FALSE;
   GSList *l;
 
   if (self->adaptive_preview &&
@@ -746,6 +766,8 @@ adw_header_bar_root (GtkWidget *widget)
   update_title (self);
   update_title_buttons (self);
   update_decoration_layout (self, TRUE, TRUE);
+
+  kdeify_header_bar (self);
 }
 
 static void
@@ -813,6 +835,10 @@ adw_header_bar_dispose (GObject *object)
   self->center_bin = NULL;
 
   g_clear_object (&self->size_group);
+
+  self->menu_buttons_box = NULL;
+  self->exit_button = NULL;
+  g_clear_object (&self->menu_model);
   g_clear_pointer (&self->handle, gtk_widget_unparent);
 
   G_OBJECT_CLASS (adw_header_bar_parent_class)->dispose (object);
@@ -858,6 +884,12 @@ adw_header_bar_get_property (GObject    *object,
   case PROP_SHOW_TITLE:
     g_value_set_boolean (value, adw_header_bar_get_show_title (self));
     break;
+  case PROP_MENU_MODEL:
+    g_value_set_object (value, self->menu_model);
+    break;
+  case PROP_SHOW_EXIT_BUTTON:
+    g_value_set_boolean (value, self->show_exit_button);
+    break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     break;
@@ -893,6 +925,12 @@ adw_header_bar_set_property (GObject      *object,
     break;
   case PROP_SHOW_TITLE:
     adw_header_bar_set_show_title (self, g_value_get_boolean (value));
+    break;
+  case PROP_MENU_MODEL:
+    adw_header_bar_set_menu_model (self, g_value_get_object (value));
+    break;
+  case PROP_SHOW_EXIT_BUTTON:
+    adw_header_bar_set_show_exit_button (self, g_value_get_boolean (value));
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1033,6 +1071,14 @@ adw_header_bar_class_init (AdwHeaderBarClass *class)
                           TRUE,
                           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
+  props[PROP_MENU_MODEL] =
+    g_param_spec_object ("menu-model", NULL, NULL, G_TYPE_MENU_MODEL,
+                         G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
+  props[PROP_SHOW_EXIT_BUTTON] =
+    g_param_spec_boolean ("show-exit-button", NULL, NULL, TRUE,
+                          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
+
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);
@@ -1045,8 +1091,8 @@ adw_header_bar_init (AdwHeaderBar *self)
 {
   self->title_widget = NULL;
   self->decoration_layout = NULL;
-  self->show_start_title_buttons = TRUE;
-  self->show_end_title_buttons = TRUE;
+  self->show_start_title_buttons = FALSE;
+  self->show_end_title_buttons = FALSE;
   self->show_back_button = TRUE;
 
   self->handle = gtk_window_handle_new ();
@@ -1070,6 +1116,7 @@ adw_header_bar_init (AdwHeaderBar *self)
 
   self->center_bin = adw_bin_new ();
   gtk_center_box_set_center_widget (GTK_CENTER_BOX (self->center_box), self->center_bin);
+  gtk_widget_set_hexpand (self->center_bin, TRUE);
 
   self->start_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
   gtk_widget_set_halign (self->start_box, GTK_ALIGN_START);
@@ -1081,10 +1128,16 @@ adw_header_bar_init (AdwHeaderBar *self)
   gtk_widget_add_css_class (self->end_box, "end");
   gtk_widget_set_parent (self->end_box, self->end_bin);
 
+  self->menu_buttons_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_widget_set_valign (self->menu_buttons_box, GTK_ALIGN_FILL);
+  gtk_widget_add_css_class (self->menu_buttons_box, "menubar");
+  gtk_box_append (GTK_BOX (self->start_box), self->menu_buttons_box);
+
   self->size_group = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
 
   construct_title_label (self);
   create_back_button (self);
+  update_exit_button (self);
 }
 
 static void
@@ -1564,3 +1617,322 @@ adw_header_bar_set_show_title (AdwHeaderBar *self,
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_SHOW_TITLE]);
 }
+
+
+/* === KDE-ified menubar patch === */
+
+static void
+menu_item_activate_cb (GtkButton *button, AdwHeaderBar *self)
+{
+  const char *action = g_object_get_data (G_OBJECT (button), "action");
+  GVariant   *target = g_object_get_data (G_OBJECT (button), "target");
+  GtkRoot    *root   = gtk_widget_get_root (GTK_WIDGET (self));
+  GtkWindow  *window = NULL;
+  GApplication *app  = NULL;
+  GActionGroup *group = NULL;
+  const char *bare = action;
+
+  if (!action) return;
+  if (GTK_IS_WINDOW (root)) window = GTK_WINDOW (root);
+  if (window) app = G_APPLICATION (gtk_window_get_application (window));
+
+  if (g_str_has_prefix (action, "app.")) {
+    bare = action + 4;
+    if (app) group = G_ACTION_GROUP (app);
+  } else if (g_str_has_prefix (action, "win.")) {
+    bare = action + 4;
+    if (window) group = G_ACTION_GROUP (window);
+  } else {
+    if (window && g_action_group_has_action (G_ACTION_GROUP (window), action))
+      group = G_ACTION_GROUP (window);
+    else if (app && g_action_group_has_action (G_ACTION_GROUP (app), action))
+      group = G_ACTION_GROUP (app);
+  }
+
+  if (group)
+    g_action_group_activate_action (group, bare, target);
+}
+
+static void
+exit_button_clicked_cb (GtkButton *button, AdwHeaderBar *self)
+{
+  GtkRoot *root = gtk_widget_get_root (GTK_WIDGET (self));
+  GtkApplication *app = NULL;
+  if (GTK_IS_WINDOW (root)) app = gtk_window_get_application (GTK_WINDOW (root));
+  if (app && g_action_group_has_action (G_ACTION_GROUP (app), "quit"))
+    g_action_group_activate_action (G_ACTION_GROUP (app), "quit", NULL);
+  else if (GTK_IS_WINDOW (root))
+    gtk_window_close (GTK_WINDOW (root));
+}
+
+static void
+update_exit_button (AdwHeaderBar *self)
+{
+  if (!self->menu_buttons_box) return;
+
+  if (self->show_exit_button && !self->exit_button) {
+    self->exit_button = gtk_button_new_with_mnemonic (_("E_xit"));
+    gtk_widget_add_css_class (self->exit_button, "flat");
+    gtk_widget_add_css_class (self->exit_button, "menubar-item");
+    gtk_widget_add_css_class (self->exit_button, "destructive-action");
+    gtk_widget_set_hexpand (self->exit_button, TRUE);
+    gtk_widget_set_halign (self->exit_button, GTK_ALIGN_FILL);
+    g_signal_connect (self->exit_button, "clicked",
+                      G_CALLBACK (exit_button_clicked_cb), self);
+  } else if (!self->show_exit_button && self->exit_button) {
+    if (gtk_widget_get_parent (self->exit_button))
+      gtk_box_remove (GTK_BOX (self->menu_buttons_box), self->exit_button);
+    self->exit_button = NULL;
+  }
+
+  update_menu_buttons (self);
+}
+
+static GtkWidget *
+find_first_menu_button (GtkWidget *widget)
+{
+  GtkWidget *child;
+  if (GTK_IS_MENU_BUTTON (widget)) return widget;
+  for (child = gtk_widget_get_first_child (widget); child;
+       child = gtk_widget_get_next_sibling (child)) {
+    GtkWidget *found = find_first_menu_button (child);
+    if (found) return found;
+  }
+  return NULL;
+}
+
+static void
+pin_search_entries (AdwHeaderBar *self, GtkWidget *source)
+{
+  GtkWidget *child, *next;
+  for (child = gtk_widget_get_first_child (source); child; child = next) {
+    next = gtk_widget_get_next_sibling (child);
+    if (!GTK_IS_SEARCH_ENTRY (child)) continue;
+
+    g_object_ref (child);
+    gtk_box_remove (GTK_BOX (source), child);
+    gtk_box_append (GTK_BOX (self->menu_buttons_box), child);
+    g_object_set_data (G_OBJECT (child), "kde-pinned", GINT_TO_POINTER (1));
+    gtk_widget_set_hexpand (child, TRUE);
+    gtk_widget_set_halign (child, GTK_ALIGN_FILL);
+    gtk_widget_set_valign (child, GTK_ALIGN_CENTER);
+    g_object_unref (child);
+  }
+}
+
+static void
+kdeify_notify_cb (GObject    *sender,
+                  GParamSpec *pspec,
+                  gpointer    user_data)
+{
+  kdeify_header_bar (ADW_HEADER_BAR (user_data));
+}
+
+static void
+kdeify_header_bar (AdwHeaderBar *self)
+{
+  GtkWidget *menu_button;
+  GtkPopover *popover;
+  GMenuModel *model = NULL;
+
+  if (!self->menu_buttons_box || self->menu_model)
+    return;
+
+  menu_button = find_first_menu_button (self->start_box);
+  if (!menu_button)
+    menu_button = find_first_menu_button (self->end_box);
+  if (!menu_button)
+    return;
+
+  model = gtk_menu_button_get_menu_model (GTK_MENU_BUTTON (menu_button));
+  if (!model) {
+    popover = gtk_menu_button_get_popover (GTK_MENU_BUTTON (menu_button));
+    if (GTK_IS_POPOVER_MENU (popover))
+      model = gtk_popover_menu_get_menu_model (GTK_POPOVER_MENU (popover));
+  }
+
+  if (!model) {
+    if (!g_object_get_data (G_OBJECT (menu_button), "kde-deferred")) {
+      g_object_set_data (G_OBJECT (menu_button), "kde-deferred",
+                         GINT_TO_POINTER (1));
+      g_signal_connect_object (menu_button, "notify::popover",
+                               G_CALLBACK (kdeify_notify_cb), self, 0);
+      g_signal_connect_object (menu_button, "notify::menu-model",
+                               G_CALLBACK (kdeify_notify_cb), self, 0);
+    }
+    return;
+  }
+
+  self->menu_model = g_object_ref (model);
+  gtk_widget_set_visible (menu_button, FALSE);
+
+  pin_search_entries (self, self->start_box);
+  pin_search_entries (self, self->end_box);
+
+  adw_bin_set_child (ADW_BIN (self->center_bin), NULL);
+  self->title_label = NULL;
+  self->title_widget = NULL;
+
+  g_object_ref (self->menu_buttons_box);
+  gtk_widget_unparent (self->menu_buttons_box);
+  adw_bin_set_child (ADW_BIN (self->center_bin), self->menu_buttons_box);
+  g_object_unref (self->menu_buttons_box);
+
+  gtk_widget_set_visible (self->center_bin, TRUE);
+  gtk_widget_set_hexpand (self->center_bin, TRUE);
+  gtk_widget_set_hexpand (self->menu_buttons_box, TRUE);
+  gtk_widget_set_halign (self->menu_buttons_box, GTK_ALIGN_FILL);
+  gtk_widget_set_valign (self->menu_buttons_box, GTK_ALIGN_FILL);
+
+  update_menu_buttons (self);
+}
+
+GMenuModel *
+adw_header_bar_get_menu_model (AdwHeaderBar *self)
+{
+  g_return_val_if_fail (ADW_IS_HEADER_BAR (self), NULL);
+  return self->menu_model;
+}
+
+void
+adw_header_bar_set_menu_model (AdwHeaderBar *self, GMenuModel *menu_model)
+{
+  g_return_if_fail (ADW_IS_HEADER_BAR (self));
+  if (self->menu_model == menu_model) return;
+  g_set_object (&self->menu_model, menu_model);
+  update_menu_buttons (self);
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_MENU_MODEL]);
+}
+
+gboolean
+adw_header_bar_get_show_exit_button (AdwHeaderBar *self)
+{
+  g_return_val_if_fail (ADW_IS_HEADER_BAR (self), FALSE);
+  return self->show_exit_button;
+}
+
+void
+adw_header_bar_set_show_exit_button (AdwHeaderBar *self, gboolean show_exit_button)
+{
+  g_return_if_fail (ADW_IS_HEADER_BAR (self));
+  show_exit_button = !!show_exit_button;
+  if (self->show_exit_button == show_exit_button) return;
+  self->show_exit_button = show_exit_button;
+  update_exit_button (self);
+  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_SHOW_EXIT_BUTTON]);
+}
+
+/* === END KDE-ified menubar patch === */
+
+
+static void
+append_menu_buttons (AdwHeaderBar *self,
+                     GMenuModel   *model,
+                     int          *index)
+{
+  int n = g_menu_model_get_n_items (model);
+
+  for (int i = 0; i < n; i++) {
+    char *label = NULL;
+    GMenuModel *submenu = NULL;
+    GMenuModel *section = NULL;
+    GtkWidget *button;
+
+    g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_LABEL, "s", &label);
+    submenu = g_menu_model_get_item_link (model, i, G_MENU_LINK_SUBMENU);
+    section = g_menu_model_get_item_link (model, i, G_MENU_LINK_SECTION);
+
+    if (!label && section) {
+      append_menu_buttons (self, section, index);
+      g_clear_object (&section);
+      g_clear_object (&submenu);
+      g_free (label);
+      continue;
+    }
+
+    if (!label) {
+      g_clear_object (&section);
+      g_clear_object (&submenu);
+      continue;
+    }
+
+    if (submenu) {
+      GtkWidget *popover = gtk_popover_menu_new_from_model (submenu);
+
+      button = gtk_menu_button_new ();
+      gtk_menu_button_set_label (GTK_MENU_BUTTON (button), label);
+      gtk_menu_button_set_always_show_arrow (GTK_MENU_BUTTON (button), FALSE);
+      gtk_menu_button_set_popover (GTK_MENU_BUTTON (button), popover);
+    } else {
+      const char *action_name = NULL;
+      GVariant *target = NULL;
+
+      g_menu_model_get_item_attribute (model, i, G_MENU_ATTRIBUTE_ACTION, "s", &action_name);
+      target = g_menu_model_get_item_attribute_value (model, i, G_MENU_ATTRIBUTE_TARGET, NULL);
+
+      button = gtk_button_new_with_mnemonic (label);
+      g_object_set_data_full (G_OBJECT (button), "action",
+                              g_strdup (action_name), g_free);
+      if (target)
+        g_object_set_data_full (G_OBJECT (button), "target",
+                                g_variant_ref_sink (target),
+                                (GDestroyNotify) g_variant_unref);
+      g_signal_connect (button, "clicked", G_CALLBACK (menu_item_activate_cb), self);
+    }
+
+    gtk_widget_add_css_class (button, "flat");
+    gtk_widget_add_css_class (button, "menubar-item");
+    gtk_widget_add_css_class (button, (*index % 2 == 0) ? "zebra-even" : "zebra-odd");
+    gtk_widget_set_hexpand (button, TRUE);
+    gtk_widget_set_halign (button, GTK_ALIGN_FILL);
+
+    gtk_box_append (GTK_BOX (self->menu_buttons_box), button);
+    (*index)++;
+
+    g_free (label);
+    g_clear_object (&submenu);
+    g_clear_object (&section);
+  }
+}
+
+static void
+update_menu_buttons (AdwHeaderBar *self)
+{
+  GtkWidget *child;
+  int index = 0;
+
+  if (!self->menu_buttons_box)
+    return;
+
+  {
+    GSList *pinned = NULL, *l;
+
+    for (child = gtk_widget_get_first_child (self->menu_buttons_box);
+         child;
+         child = gtk_widget_get_next_sibling (child)) {
+      if (g_object_get_data (G_OBJECT (child), "kde-pinned")) {
+        g_object_ref (child);
+        pinned = g_slist_append (pinned, child);
+      }
+    }
+
+    while ((child = gtk_widget_get_first_child (self->menu_buttons_box)))
+      gtk_box_remove (GTK_BOX (self->menu_buttons_box), child);
+
+    for (l = pinned; l; l = l->next)
+      gtk_box_append (GTK_BOX (self->menu_buttons_box), l->data);
+
+    g_slist_free_full (pinned, g_object_unref);
+  }
+
+  if (self->menu_model)
+    append_menu_buttons (self, self->menu_model, &index);
+
+  if (self->exit_button) {
+    gtk_box_append (GTK_BOX (self->menu_buttons_box), self->exit_button);
+    index++;
+  }
+
+  gtk_widget_set_visible (self->menu_buttons_box, index > 0);
+}
+

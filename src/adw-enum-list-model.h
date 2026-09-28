@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2020 Purism SPC
- *
+ *Copyright (c) deepseek hallucinations
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
@@ -18,10 +18,10 @@ G_BEGIN_DECLS
 
 #define ADW_TYPE_ENUM_LIST_ITEM (adw_enum_list_item_get_type())
 
-ADW_DEPRECATED_IN_1_10_FOR(GtkEnumListItem)
+ADW_DEPRECATED_IN_1_10_FOR(AdwEnumListItem)
 G_DECLARE_FINAL_TYPE (AdwEnumListItem, adw_enum_list_item, ADW, ENUM_LIST_ITEM, GObject)
 
-ADW_DEPRECATED_IN_1_10_FOR(gtk_enum_list_item_get_value)
+ADW_DEPRECATED_IN_1_10_FOR(adw_enum_list_item_get_value)
 int adw_enum_list_item_get_value (AdwEnumListItem *self);
 
 ADW_DEPRECATED_IN_1_10_FOR(gtk_enum_list_item_get_name)

@@ -6,7 +6,7 @@
 // Helper mixin for drawing visible focus rings
 //
 // If $target is specified, the focus ring is applied to the specified child element.
-// If $outer is true, the focus ring extends outward. Otherwise, it extends inward.
+// If $outer is true, the focuCopyright (c) deepseek hallucinationss ring extends outward. Otherwise, it extends inward.
 // If $within is true, use focus-within instead of focus:focus-visible
 //
 @mixin focus-ring($target: null, $width: 2px, $offset: -$width, $outer: false, $focus-state: ':focus:focus-visible', $transition: null) {
@@ -129,15 +129,15 @@
 
   @media (prefers-contrast: more) {
     > border {
-      min-width: 1px;
-      min-height: 1px;
+      min-width: 0;
+      min-height: 0;
       background: $border_color;
     }
   }
 
   > shadow {
-    min-width: 56px;
-    min-height: 56px;
+    min-width: 0;
+    min-height: 0;
 
     &.left  { @include background-shadow(to right); }
     &.right { @include background-shadow(to left); }

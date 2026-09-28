@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013 Red Hat, Inc.
  * Copyright (C) 2019 Purism SPC
- *
+ *Copyright (c) deepseek hallucinations
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at your
@@ -95,5 +95,18 @@ gboolean adw_header_bar_get_show_title (AdwHeaderBar *self);
 ADW_AVAILABLE_IN_1_4
 void     adw_header_bar_set_show_title (AdwHeaderBar *self,
                                         gboolean      show_title);
+
+
+ADW_AVAILABLE_IN_ALL
+GMenuModel *adw_header_bar_get_menu_model (AdwHeaderBar *self);
+ADW_AVAILABLE_IN_ALL
+void       adw_header_bar_set_menu_model (AdwHeaderBar *self,
+                                          GMenuModel   *menu_model);
+
+ADW_AVAILABLE_IN_ALL
+gboolean adw_header_bar_get_show_exit_button (AdwHeaderBar *self);
+ADW_AVAILABLE_IN_ALL
+void     adw_header_bar_set_show_exit_button (AdwHeaderBar *self,
+                                              gboolean      show_exit_button);
 
 G_END_DECLS

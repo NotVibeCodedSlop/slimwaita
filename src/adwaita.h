@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2017 Purism SPC
- *
+ *Copyright (c) deepseek hallucinations because deepseek removed a error check or something idk
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
@@ -9,14 +9,6 @@
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
-
-#if !GTK_CHECK_VERSION(4, 23, 1)
-# error "libadwaita requires gtk4 >= 4.23.1"
-#endif
-
-#if !GLIB_CHECK_VERSION(2, 84, 0)
-# error "libadwaita requires glib-2.0 >= 2.84.0"
-#endif
 
 #define _ADWAITA_INSIDE
 

@@ -1,44 +1,801 @@
-@import 'widgets/avatar';
-@import 'widgets/bottom-sheet';
-@import 'widgets/buttons';
-@import 'widgets/calendar';
-@import 'widgets/checks';
-@import 'widgets/color-chooser';
-@import 'widgets/column-view';
-@import 'widgets/dialogs';
-@import 'widgets/deprecated';
-@import 'widgets/dropdowns';
-@import 'widgets/emoji-chooser';
-@import 'widgets/entries';
-@import 'widgets/expanders';
-@import 'widgets/file-chooser';
-@import 'widgets/header-bar';
-@import 'widgets/inspector';
-@import 'widgets/labels';
-@import 'widgets/level-bar';
-@import 'widgets/linked';
-@import 'widgets/links';
-@import 'widgets/lists';
-@import 'widgets/menus';
-@import 'widgets/message-dialog';
-@import 'widgets/misc';
-@import 'widgets/notebook';
-@import 'widgets/paned';
-@import 'widgets/popovers';
-@import 'widgets/preferences';
-@import 'widgets/progress-bar';
-@import 'widgets/scale';
-@import 'widgets/scrolling';
-@import 'widgets/shortcuts-dialog';
-@import 'widgets/sidebars';
-@import 'widgets/spinner';
-@import 'widgets/spin-button';
-@import 'widgets/switch';
-@import 'widgets/tab-view';
-@import 'widgets/text-selection';
-@import 'widgets/toggle-group';
-@import 'widgets/toolbars';
-@import 'widgets/tooltip';
-@import 'widgets/views';
-@import 'widgets/view-switcher';
-@import 'widgets/window';
+/* ============================================================
+   KDE / Breeze stylesheet — total replacement for widgets/
+   ===========================Copyright (c) deepseek hallucinations=================================
+   Every %placeholder that a file outside widgets/ might @extend
+   is stubbed here as empty, so @extend resolves to nothing
+   instead of erroring. Real look is defined below.
+   ============================================================ */
+
+%button, %button_basic, %button_basic_flat, %button_basic_raised,
+%button_basic_drop_active, %circular_button, %pill_button,
+%osd_button, %opaque_button, %destructive_button,
+%flat_split_button, %entry, %entry_basic, %view, %card,
+%osd, %boxed_list_row, %needs_attention,
+%scale_trough, %scale_highlight,
+%toolbar, %toolbar-shrunk,
+%headerbar, %headerbar-inline, %headerbar-flat, %headerbar-shrunk,
+%searchbar-flat, %searchbar-inline, %searchbar-shrunk,
+%actionbar-inline, %actionbar-shrunk,
+%tabbar-inline, %tabbar-shrunk,
+%menubar-inline, %menubar-shrunk,
+%viewswitcherbar-shrunk,
+%notebook_vert_arrows, %notebook_horz_arrows {
+  /* intentionally empty */
+}
+
+/* ============================================================
+   Named variables (Breeze)
+   ============================================================ */
+$kde_bg:        #eff0f1;
+$kde_bg_alt:    #e0e0e0;
+$kde_view:      #ffffff;
+$kde_text:      #232629;
+$kde_border:    #bdc3c7;
+$kde_border_hd: #909090;
+$kde_accent:    #3daee9;
+$kde_accent_d:  #2980b9;
+$kde_destr:     #da4453;
+$kde_destr_d:   #b13748;
+$kde_disabled:  #a0a0a0;
+
+/* ============================================================
+   Base — kill transitions, strip radii
+   ============================================================ */
+button, entry, row, list, listview, popover, check, radio,
+switch, tab, scale, progressbar, levelbar, spinbutton,
+dropdown, menubutton, headerbar, notebook, treeview, columnview,
+toast, banner, actionbar, searchbar, tabbar {
+  transition: none;
+  animation: none;
+}
+
+/* ============================================================
+   Window / headerbar / toolbar
+   ============================================================ */
+window {
+  background-color: $kde_bg;
+  color: $kde_text;
+}
+
+headerbar {
+  min-height: 0;
+  padding: 0;
+  background-color: $kde_bg_alt;
+  color: $kde_text;
+  border-bottom: 1px solid $kde_border;
+  box-shadow: none;
+
+  &:backdrop {
+    background-color: $kde_bg;
+    color: color-mix(in srgb, $kde_text 60%, transparent);
+  }
+
+  .title, .subtitle {
+    font-weight: normal;
+    font-size: 0.92em;
+  }
+}
+
+actionbar > revealer > box,
+searchbar > revealer > box {
+  background-color: $kde_bg_alt;
+  color: $kde_text;
+  border-top: 1px solid $kde_border;
+  box-shadow: none;
+  padding: 3px;
+}
+
+/* ============================================================
+   Buttons — the KDE signature
+   ============================================================ */
+button {
+  min-height: 0;
+  min-width: 0;
+  padding: 1px 8px;
+  border-radius: 2px;
+  border: 1px solid $kde_border;
+  background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
+  background-color: #efefef;
+  color: $kde_text;
+  font-weight: normal;
+  box-shadow: none;
+  text-shadow: none;
+
+  &:hover {
+    background-image: linear-gradient(to bottom, #ffffff, #dde7ec);
+    border-color: $kde_accent;
+  }
+
+  &:active, &.keyboard-activating {
+    background-image: linear-gradient(to bottom, #d0d4d7, #dcdfe1);
+    border-color: $kde_accent_d;
+  }
+
+  &:checked {
+    background-image: linear-gradient(to bottom, #c8dcf0, #b8d4ec);
+    border-color: $kde_accent_d;
+  }
+
+  &:disabled {
+    background-image: none;
+    background-color: #efefef;
+    color: $kde_disabled;
+    border-color: #d5d5d5;
+    filter: none;
+  }
+
+  &.flat {
+    background: transparent;
+    background-image: none;
+    border-color: transparent;
+
+    &:hover { background-color: rgba(0, 0, 0, 0.06); }
+    &:active, &:checked { background-color: rgba(0, 0, 0, 0.12); }
+    &:disabled { background-color: transparent; color: $kde_disabled; }
+  }
+
+  &.suggested-action {
+    background-image: linear-gradient(to bottom, #4db8f0, #3daee9);
+    border-color: $kde_accent_d;
+    color: #ffffff;
+
+    &:hover { background-image: linear-gradient(to bottom, #5cc0f5, #4db8f0); }
+    &:active { background-image: linear-gradient(to bottom, #2980b9, #3daee9); }
+  }
+
+  &.destructive-action {
+    background-image: linear-gradient(to bottom, #e05a67, #da4453);
+    border-color: $kde_destr_d;
+    color: #ffffff;
+
+    &:hover { background-image: linear-gradient(to bottom, #e56b76, #e05a67); }
+    &:active { background-image: linear-gradient(to bottom, #b13748, #da4453); }
+  }
+
+  &.image-button {
+    padding: 1px 5px;
+  }
+
+  &.circular, &.pill {
+    border-radius: 2px;
+    padding: 1px 8px;
+  }
+}
+
+/* ============================================================
+   Entries
+   ============================================================ */
+entry, spinbutton, searchentry {
+  min-height: 0;
+  padding: 1px 6px;
+  border-radius: 2px;
+  border: 1px solid $kde_border;
+  background-color: $kde_view;
+  background-image: none;
+  color: $kde_text;
+  box-shadow: none;
+
+  &:focus, &:focus-within {
+    border-color: $kde_accent;
+    outline: none;
+    box-shadow: none;
+  }
+
+  &:disabled {
+    background-color: #efefef;
+    color: $kde_disabled;
+    border-color: #d5d5d5;
+    filter: none;
+  }
+
+  &.flat {
+    border-color: transparent;
+    background-color: transparent;
+    &:focus-within { border-color: $kde_accent; }
+  }
+}
+
+/* ============================================================
+   Check / radio / switch
+   ============================================================ */
+check, radio {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  -gtk-icon-size: 14px;
+  border-radius: 2px;
+  border: 1px solid $kde_border;
+  background-color: $kde_view;
+  background-image: none;
+  box-shadow: none;
+
+  &:hover { border-color: $kde_accent; }
+
+  &:checked, &:indeterminate {
+    background-color: $kde_accent;
+    border-color: $kde_accent_d;
+    color: #ffffff;
+  }
+
+  &:disabled {
+    filter: none;
+    border-color: #d5d5d5;
+    background-color: #efefef;
+  }
+}
+
+radio { border-radius: 50%; }
+
+switch {
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border-radius: 2px;
+  background-color: #c0c0c0;
+  background-image: none;
+  border: 1px solid #b0b0b0;
+
+  &:checked {
+    background-color: $kde_accent;
+    border-color: $kde_accent_d;
+  }
+
+  > slider {
+    min-width: 0;
+    min-height: 0;
+    border-radius: 1px;
+    background-color: #ffffff;
+    background-image: none;
+    border: 1px solid $kde_border_hd;
+    box-shadow: none;
+    margin: 0;
+  }
+
+  &:disabled { filter: none; opacity: 0.5; }
+}
+
+/* ============================================================
+   Scale / progressbar / levelbar
+   ============================================================ */
+scale > trough {
+  min-height: 6px;
+  border-radius: 2px;
+  background-color: #c0c0c0;
+  background-image: none;
+  border: 1px solid $kde_border;
+
+  > highlight {
+    background-color: $kde_accent;
+    background-image: none;
+    border-radius: 2px;
+  }
+
+  > slider {
+    background-color: #ffffff;
+    background-image: none;
+    border: 1px solid $kde_border_hd;
+    border-radius: 2px;
+    min-width: 12px;
+    min-height: 12px;
+    box-shadow: none;
+  }
+}
+
+progressbar > trough {
+  min-height: 6px;
+  border-radius: 0;
+  background-color: #e0e0e0;
+  background-image: none;
+  border: 1px solid $kde_border;
+
+  > progress {
+    background-color: $kde_accent;
+    background-image: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+levelbar > trough {
+  padding: 0;
+  border-radius: 0;
+  background-color: #e0e0e0;
+  border: 1px solid $kde_border;
+
+  > block {
+    border-radius: 0;
+    min-height: 6px;
+
+    &.low   { background-color: $kde_accent; }
+    &.high  { background-color: $kde_accent; }
+    &.full  { background-color: $kde_accent; }
+    &.empty { background-color: transparent; }
+  }
+}
+
+/* ============================================================
+   Scrollbar — always visible, thick, solid
+   ============================================================ */
+scrollbar {
+  background-color: #e8e8e8;
+  border: none;
+  box-shadow: none;
+
+  > range > trough {
+    background-color: #e8e8e8;
+    border: none;
+    margin: 0;
+    border-radius: 0;
+
+    > slider {
+      min-width: 10px;
+      min-height: 10px;
+      background-color: $kde_border_hd;
+      background-image: none;
+      border: none;
+      border-radius: 0;
+      margin: 0;
+      outline: none;
+
+      &:hover  { background-color: $kde_accent; }
+      &:active { background-color: $kde_accent_d; }
+    }
+  }
+
+  &.vertical   { min-width: 12px; }
+  &.horizontal { min-height: 12px; }
+
+  &.overlay-indicator {
+    background-color: transparent;
+
+    > range > trough > slider {
+      background-color: rgba(0, 0, 0, 0.4);
+      &:hover { background-color: $kde_accent; }
+    }
+  }
+}
+
+/* ============================================================
+   Lists and rows
+   ============================================================ */
+list, listview {
+  background-color: $kde_view;
+  color: $kde_text;
+  border: none;
+
+  > row {
+    min-height: 0;
+    padding: 1px 4px;
+    background-clip: padding-box;
+
+    &:hover { background-color: rgba(61, 174, 233, 0.08); }
+    &:active { background-color: rgba(61, 174, 233, 0.18); }
+
+    &:selected {
+      background-color: $kde_accent;
+      color: #ffffff;
+
+      &:hover { background-color: $kde_accent_d; }
+      &:active { background-color: $kde_accent_d; }
+    }
+  }
+
+  &.boxed-list > row:first-child { border-top-left-radius: 0; border-top-right-radius: 0; }
+  &.boxed-list > row:last-child  { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+
+  /* zebra tint retained */
+  > row:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.025);
+  }
+  > row:nth-child(even):hover {
+    background-color: rgba(61, 174, 233, 0.1);
+  }
+  > row:nth-child(even):selected {
+    background-color: $kde_accent;
+    color: #ffffff;
+  }
+}
+
+row {
+  min-height: 0;
+
+  > box.header {
+    margin-left: 8px;
+    margin-right: 8px;
+    border-spacing: 4px;
+    min-height: 0;
+  }
+
+  label.subtitle {
+    font-size: smaller;
+    opacity: 0.65;
+  }
+}
+
+/* ============================================================
+   Columnview / treeview
+   ============================================================ */
+columnview > header > button,
+treeview.view > header > button {
+  min-height: 0;
+  padding: 1px 6px;
+  border-radius: 0;
+  background-color: $kde_bg_alt;
+  background-image: none;
+  border: none;
+  border-right: 1px solid $kde_border;
+  border-bottom: 1px solid $kde_border;
+  box-shadow: none;
+  font-weight: bold;
+
+  &:hover { background-color: #d8d8d8; }
+  &:active { background-color: #d0d0d0; }
+}
+
+columnview > listview > row,
+treeview.view {
+  min-height: 0;
+  padding: 0;
+
+  > cell {
+    padding: 1px 4px;
+  }
+}
+
+/* ============================================================
+   Popover / menus
+   ============================================================ */
+popover > contents {
+  padding: 2px;
+  border-radius: 0;
+  border: 1px solid $kde_border;
+  background-color: $kde_view;
+  color: $kde_text;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+popover.menu {
+  > contents > stack > box { padding: 2px; }
+
+  modelbutton,
+  > contents > item,
+  list > row {
+    min-height: 0;
+    padding: 3px 12px;
+    border-radius: 0;
+    color: $kde_text;
+
+    &:hover, &:selected {
+      background-color: $kde_accent;
+      background-image: none;
+      color: #ffffff;
+    }
+
+    &:active {
+      background-color: $kde_accent_d;
+      color: #ffffff;
+    }
+
+    &:disabled { color: $kde_disabled; }
+  }
+
+  separator {
+    background-color: $kde_border;
+    min-height: 1px;
+    margin: 2px 4px;
+  }
+}
+
+/* ============================================================
+   Notebook / tabbar
+   ============================================================ */
+notebook > header > tabs > tab,
+tabbar tab {
+  min-height: 0;
+  padding: 2px 10px;
+  border-radius: 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background-color: transparent;
+
+  &:hover { background-color: rgba(0, 0, 0, 0.05); }
+
+  &:checked, &:selected {
+    background-color: $kde_view;
+    background-image: none;
+    color: $kde_text;
+    box-shadow: inset 0 -2px $kde_accent;
+    border-color: $kde_border $kde_border transparent;
+  }
+}
+
+tabbar .box {
+  background-color: $kde_bg_alt;
+  border-bottom: 1px solid $kde_border;
+  box-shadow: none;
+}
+
+/* ============================================================
+   Cards / tooltips / toasts / separators
+   ============================================================ */
+.card, list.boxed-list {
+  border-radius: 0;
+  border: 1px solid $kde_border;
+  background-color: $kde_view;
+  box-shadow: none;
+}
+
+tooltip, tooltip.background {
+  padding: 2px 6px;
+  border-radius: 0;
+  border: 1px solid #1b1e20;
+  background-color: #232629;
+  color: #eff0f1;
+  box-shadow: none;
+}
+
+toast {
+  margin: 6px;
+  margin-bottom: 12px;
+  padding: 3px;
+  border-radius: 2px;
+  border: 1px solid $kde_border;
+  background-color: #505053;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+separator {
+  background-color: $kde_border;
+  min-width: 1px;
+  min-height: 1px;
+}
+
+/* ============================================================
+   Links, labels, typography helpers
+   ============================================================ */
+link, button.link {
+  color: $kde_accent_d;
+  text-decoration: underline;
+  background: none;
+
+  &:hover  { color: $kde_accent; }
+  &:active { color: $kde_accent_d; }
+}
+
+.dimmed, .dim-label { opacity: 0.65; }
+.accent { color: $kde_accent_d; }
+
+.title-1 { font-weight: 300; font-size: 24pt; }
+.title-2 { font-weight: 300; font-size: 18pt; }
+.title-3 { font-weight: 400; font-size: 14pt; }
+.title-4 { font-weight: 400; font-size: 12pt; }
+.heading { font-weight: bold; }
+.body { font-weight: normal; line-height: 140%; }
+.caption-heading { font-weight: bold; font-size: 82%; }
+.caption { font-weight: normal; font-size: 82%; line-height: 140%; }
+.monospace { font-family: var(--monospace-font-family); font-size: var(--monospace-font-size); }
+.numeric { font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+   Statuspage, preferences, sidebars
+   ============================================================ */
+statuspage > scrolledwindow > viewport > box {
+  margin: 18px 6px;
+  border-spacing: 24px;
+
+  > clamp > box {
+    border-spacing: 24px;
+
+    > .icon { -gtk-icon-size: 96px; color: $kde_disabled; }
+    > box {
+      border-spacing: 12px;
+
+      > .title { font-weight: 300; font-size: 18pt; }
+    }
+  }
+}
+
+preferencespage > scrolledwindow > viewport > clamp > box {
+  margin: 6px 3px;
+  border-spacing: 12px;
+}
+
+preferencesgroup > box {
+  &, box.labels { border-spacing: 3px; }
+
+  > box.header:not(.single-line) { margin-bottom: 1.5px; }
+
+  > box.single-line { min-height: 0; }
+}
+
+.navigation-sidebar {
+  padding-top: 1.5px;
+  padding-bottom: 1.5px;
+
+  > row {
+    min-height: 0;
+    padding: 1px 6px;
+    margin: 0 1.5px 1px;
+    border-radius: 2px;
+
+    &:hover { background-color: rgba(0, 0, 0, 0.05); }
+    &:selected {
+      background-color: $kde_accent;
+      color: #ffffff;
+    }
+  }
+}
+
+.sidebar-pane {
+  background-color: $kde_bg_alt;
+  color: $kde_text;
+
+  &:backdrop { background-color: $kde_bg; }
+}
+
+/* ============================================================
+   Sheets / dialogs
+   ============================================================ */
+floating-sheet > sheet,
+bottom-sheet > sheet,
+dialog-host > dialog > sheet {
+  border-radius: 0;
+  border: 1px solid $kde_border;
+  background-color: $kde_bg;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+window.dialog, window.messagedialog {
+  background-color: $kde_bg;
+  color: $kde_text;
+}
+
+/* ============================================================
+   Expander rows
+   ============================================================ */
+row.expander {
+  background: none;
+  padding: 0;
+
+  list.nested {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+
+  image.expander-row-arrow {
+    transition: none;
+    color: $kde_disabled;
+  }
+
+  &:checked image.expander-row-arrow { color: $kde_accent_d; }
+}
+
+/* ============================================================
+   Focus ring — single 1px blue outline, KDE-style
+   ============================================================ */
+*:focus:focus-visible {
+  outline: 1px solid $kde_accent;
+  outline-offset: -1px;
+  box-shadow: none;
+}
+
+/* ============================================================
+   Dark mode — Breeze Dark
+   ============================================================ */
+@media (prefers-color-scheme: dark) {
+  window   { background-color: #232629; color: #eff0f1; }
+  headerbar { background-color: #31363b; color: #eff0f1; border-bottom-color: #1b1e20;
+              &:backdrop { background-color: #232629; } }
+
+  actionbar > revealer > box,
+  searchbar > revealer > box {
+    background-color: #31363b; color: #eff0f1; border-top-color: #1b1e20;
+  }
+
+  button {
+    background-image: linear-gradient(to bottom, #3d4247, #303539);
+    background-color: #31363b; border-color: #1b1e20; color: #eff0f1;
+    &:hover { background-image: linear-gradient(to bottom, #454a4f, #383d41); border-color: $kde_accent; }
+    &:active { background-image: linear-gradient(to bottom, #232629, #2a2e32); }
+    &.flat { background: transparent; background-image: none; border-color: transparent;
+             &:hover { background-color: rgba(255, 255, 255, 0.08); } }
+    &.suggested-action { background-image: linear-gradient(to bottom, #4db8f0, #3daee9); color: #fff; }
+    &.destructive-action { background-image: linear-gradient(to bottom, #e05a67, #da4453); color: #fff; }
+  }
+
+  entry, spinbutton, searchentry {
+    background-color: #232629; color: #eff0f1; border-color: #1b1e20;
+    &:focus-within { border-color: $kde_accent; }
+  }
+
+  check, radio {
+    background-color: #232629; border-color: #4a4d51;
+    &:checked, &:indeterminate { background-color: $kde_accent; border-color: $kde_accent_d; color: #fff; }
+  }
+
+  switch { background-color: #4a4d51; border-color: #1b1e20;
+           &:checked { background-color: $kde_accent; border-color: $kde_accent_d; }
+           > slider { background-color: #eff0f1; border-color: #1b1e20; } }
+
+  scale > trough {
+    background-color: #4a4d51; border-color: #1b1e20;
+    > slider { background-color: #eff0f1; border-color: #1b1e20; }
+  }
+
+  progressbar > trough, levelbar > trough {
+    background-color: #232629; border-color: #1b1e20;
+  }
+
+  scrollbar, scrollbar > range > trough { background-color: #2a2e32;
+    > slider { background-color: #5a5d61; &:hover { background-color: $kde_accent; } } }
+
+  list, listview { background-color: #1b1e20; color: #eff0f1;
+    > row { &:hover { background-color: rgba(61, 174, 233, 0.1); }
+            &:selected { background-color: $kde_accent; color: #fff; }
+            &:nth-child(even) { background-color: rgba(255, 255, 255, 0.03); } } }
+
+  popover > contents { background-color: #31363b; color: #eff0f1; border-color: #1b1e20; }
+
+  popover.menu modelbutton, popover.menu > contents > item {
+    color: #eff0f1;
+    &:hover, &:selected { background-color: $kde_accent; color: #fff; }
+  }
+
+  tooltip, tooltip.background { background-color: #eff0f1; color: #232629; border-color: #bdc3c7; }
+  .card, list.boxed-list { background-color: #31363b; color: #eff0f1; border-color: #1b1e20; }
+  .navigation-sidebar > row { &:hover { background-color: rgba(255, 255, 255, 0.06); } }
+  .sidebar-pane { background-color: #31363b; &:backdrop { background-color: #232629; } }
+
+  notebook > header > tabs > tab:checked, tabbar tab:checked {
+    background-color: #31363b; color: #eff0f1;
+  }
+
+  separator { background-color: #1b1e20; }
+  link, button.link { color: $kde_accent; }
+  $kde_view: #1b1e20;
+}
+
+/* === fix: header text color on columnview/treeview === */
+columnview > header > button,
+columnview > header > button > box,
+treeview.view > header > button,
+treeview.view > header > button > box {
+  color: $kde_text;
+}
+
+columnview > header > button:hover > box,
+treeview.view > header > button:hover > box {
+  color: $kde_text;
+}
+
+columnview > header > button:active > box,
+treeview.view > header > button:active > box {
+  color: $kde_text;
+}
+
+columnview > header > button > box > label,
+treeview.view > header > button > box > label {
+  color: $kde_text;
+}
+
+/* Dark mode counterpart */
+@media (prefers-color-scheme: dark) {
+  columnview > header > button,
+  columnview > header > button > box,
+  columnview > header > button > box > label,
+  treeview.view > header > button,
+  treeview.view > header > button > box,
+  treeview.view > header > button > box > label {
+    color: #eff0f1;
+  }
+
+  columnview > header > button,
+  treeview.view > header > button {
+    background-color: #31363b;
+    border-right-color: #1b1e20;
+    border-bottom-color: #1b1e20;
+
+    &:hover  { background-color: #3a3f44; }
+    &:active { background-color: #454a4f; }
+  }
+}

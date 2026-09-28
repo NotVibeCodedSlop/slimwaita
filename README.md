@@ -1,14 +1,21 @@
-# Adwaita
+# SlimWaita
 
-Building blocks for modern GNOME applications.
+SlimWaita is a fork of Adwaita that has been reskinned and well generaly modified (using AIs) to look more like KDE apps. And yes I have for no concrete reason just removed the about section. And also I did some weird hacks to have the hamburger menu expanded into a menu bar.
+Honestly if I didn't know I made this I would have thought its just QT.
+
+> **DO NOT CONTACT LIBADWAITA'S TEAM FOR SUPPORT.**
+>
+> This is a heavily modified fork. Adwaita upstream has no
+> knowledge of these changes and cannot help you with them.
+> Report issues to this repository, not to GNOME.
 
 ## License
 
-Libadwaita is licensed under the LGPL-2.1+.
+LibSlimWaita is licensed under the LGPL-2.1+.
 
 ## Building
 
-We use the Meson (and thereby Ninja) build system for libadwaita. The quickest
+We use the Meson (and thereby Ninja) build system for LibSlimWaita. The quickest
 way to get going is to do the following:
 
 ```sh
@@ -17,27 +24,7 @@ ninja -C _build
 ninja -C _build install
 ```
 
-For build options see [meson_options.txt](./meson_options.txt). E.g. to enable documentation:
+## Status
 
-```sh
-meson setup _build -Ddocumentation=true
-ninja -C _build
-```
-
-## Usage
-
-There's a C example:
-
-```sh
-_build/run _build/demo/adwaita-1-demo
-```
-
-## Documentation
-
-The documentation can be found online
-[here](https://gnome.pages.gitlab.gnome.org/libadwaita/doc/).
-
-## Getting in Touch
-
-Matrix room: [#libadwaita:gnome.org](https://matrix.to/#/#libadwaita:gnome.org)
-
+I have gutted half of this repo because IDK.
+And no I haven't changed the file name so it conflicts with Adwaita.
