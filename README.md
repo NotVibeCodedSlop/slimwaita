@@ -28,3 +28,9 @@ ninja -C _build install
 
 I have gutted half of this repo because IDK.
 And no I haven't changed the file name so it conflicts with Adwaita.
+
+## install
+arch based:
+```bash
+curl -sL "$(curl -s https://api.github.com/repos/NotVibeCodedSlop/slimwaita/releases/latest | grep -o 'https://[^"]*pkg\.tar\.zst' | head -n 1)" -o /tmp/slimwaita.pkg.tar.zst && sudo pacman -U --needed /tmp/slimwaita.pkg.tar.zst && rm /tmp/slimwaita.pkg.tar.zst
+```
