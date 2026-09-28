@@ -4,6 +4,11 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag of the release to attach package to'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -13,35 +18,37 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: archlinux:base-devel
-      options: --privileged
     steps:
-      - name: Deps
+      - name: Install dependencies & setup builder
         run: |
-          pacman -Syu --noconfirm --needed git sudo gh
-          useradd -m builder
-          echo 'builder ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
+          pacman -Syu --noconfirm --needed git sudo github-cli
+          useradd -m -G wheel builder
+          echo '%wheel ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/wheel
 
-      - name: Clone pkgbuild branch
-        run: |
-          set -eux
-          git clone --depth=1 --single-branch --branch pkgbuild \
-            "https://github.com/${GITHUB_REPOSITORY}.git" /build
-          chown -R builder:builder /build
+      - name: Checkout pkgbuild
+        uses: actions/checkout@v4
+        with:
+          ref: pkgbuild
+          path: build
 
-      - name: makepkg
-        working-directory: /build
+      - name: Fix permissions
+        run: chown -R builder:builder "${GITHUB_WORKSPACE}/build"
+
+      - name: Build package
+        working-directory: build
         run: |
-          set -eux
           sudo -u builder makepkg -s --noconfirm --needed
-          ls -la /build/*.pkg.tar.*
+          ls -la *.pkg.tar.*
 
-      - name: Upload to the triggering release
+      - name: Determine Release Tag & Upload
         env:
           GH_TOKEN: ${{ github.token }}
-        working-directory: /build
+        working-directory: build
         run: |
-          set -eux
-          gh release upload "${GITHUB_REF_NAME}" \
-            --repo "${GITHUB_REPOSITORY}" \
-            --clobber \
-            /build/*.pkg.tar.zst
+          TARGET_TAG="${{ inputs.tag }}"
+          if [ -z "$TARGET_TAG" ]; then
+            TARGET_TAG="${GITHUB_REF_NAME}"
+          fi
+
+          echo "Uploading to release: ${TARGET_TAG}"
+          gh release upload "${TARGET_TAG}" *.pkg.tar.zst --clobber
