@@ -24,26 +24,22 @@ jobs:
           pacman -Syu --noconfirm --needed git sudo github-cli
           useradd -m -G wheel builder
           echo '%wheel ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/wheel
+          git config --system --add safe.directory '*'
 
-      - name: Checkout pkgbuild
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: pkgbuild
-          path: build
 
-      - name: Fix permissions
-        run: chown -R builder:builder "${GITHUB_WORKSPACE}/build"
+      - name: Fix workspace permissions
+        run: chown -R builder:builder "${GITHUB_WORKSPACE}"
 
       - name: Build package
-        working-directory: build
         run: |
           sudo -u builder makepkg -s --noconfirm --needed
           ls -la *.pkg.tar.*
 
-      - name: Determine Release Tag & Upload
+      - name: Upload to release
         env:
           GH_TOKEN: ${{ github.token }}
-        working-directory: build
         run: |
           TARGET_TAG="${{ inputs.tag }}"
           if [ -z "$TARGET_TAG" ]; then
@@ -51,4 +47,26 @@ jobs:
           fi
 
           echo "Uploading to release: ${TARGET_TAG}"
-          gh release upload "${TARGET_TAG}" *.pkg.tar.zst --clobber
+          gh release upload "${TARGET_TAG}" *.pkg.tar.zst \
+            --repo "${GITHUB_REPOSITORY}" \
+            --clobber
+
+      - name: Recreate release branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TARGET_TAG="${{ inputs.tag }}"
+          if [ -z "$TARGET_TAG" ]; then
+            TARGET_TAG="${GITHUB_REF_NAME}"
+          fi
+
+          BRANCH_NAME="${TARGET_TAG}"
+          echo "Recreating branch: ${BRANCH_NAME} at SHA ${GITHUB_SHA}"
+
+          # Delete existing branch if it exists (ignore failure if it doesn't exist yet)
+          gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/${BRANCH_NAME}" || true
+
+          # Create the branch anew pointing to the current commit
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/git/refs" \
+            -f ref="refs/heads/${BRANCH_NAME}" \
+            -f sha="${GITHUB_SHA}"
