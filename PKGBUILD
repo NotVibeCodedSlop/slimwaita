@@ -1,21 +1,10 @@
-# Maintainer: Fabio 'Lolix' Loli <fabio.loli@disroot.org> -> https://github.com/FabioLolix
-# Contributor: Pellegrino Prevete <pellegrinoprevete@gmail.com>
-# Contributor: Philip Goto <philip.goto@gmail.com>
-# Contributor: Davide Depau <davide@depau.eu>
-# Contributor: Rafael Fontenelle <rafaelff@gnome.org>
-# Contributor: Marco Melorio <marco.melorio@protonmail.com>
-# Contributor: Bakasura <bakasura@protonmail.ch>
-# Contributor: mazharhussain <realmazharhussain@gmail.com>
-# Contributor: Herman Rimm <herman_rimm@pm.me>
-# Contributor: huyz
-
-_pkgname="libadwaita"
-pkgbase=libadwaita-git
-pkgname=(libadwaita-git libadwaita-docs-git libadwaita-demos-git)
-pkgver=1.9.0.r93.gdc468f0
+_pkgname="slimwaita"
+pkgbase=slimwaita
+pkgname=slimwaita
+pkgver=1.10.0.r12.g0ffcd2c
 pkgrel=1
-pkgdesc="Building blocks for modern adaptive GNOME applications"
-url="https://gnome.pages.gitlab.gnome.org/libadwaita"
+pkgdesc="SlimWaita is a fork of libadwaita"
+url="https://github.com/NotVibeCodedSlop/slimwaita"
 arch=(x86_64 i686 pentium4 aarch64 armv7h)
 license=(LGPL-2.1-or-later)
 depends=(
@@ -24,96 +13,40 @@ depends=(
   glib2
   glibc
   graphene
-  gtk4-git
   pango
-    ministream
+  gtk4
 )
 makedepends=(
-  gi-docgen
   git
+  gtk4
   glib2-devel
   gobject-introspection
   meson
   sassc
   vala
 )
-checkdepends=(weston)
-
-source=(git+https://gitlab.gnome.org/GNOME/libadwaita.git)
+provides=(libadwaita)
+conflicts=(libadwaita libadwaita-git)
+source=(git+https://github.com/NotVibeCodedSlop/slimwaita.git)
 sha256sums=(SKIP)
-
 pkgver() {
-  cd "libadwaita"
-  git describe --long --tags --abbrev=7 | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+  cd slimwaita
+  local n
+  n=$(git rev-list --count HEAD)
+  printf "1.0.%d" "$n"
 }
 
 build() {
-  local meson_options=(
-    -D gtk_doc=true
-  )
 
-  arch-meson libadwaita build "${meson_options[@]}"
+
+  arch-meson slimwaita build
   meson compile -C build
 }
-
-check() (
-  export XDG_RUNTIME_DIR="$PWD/runtime-dir" WAYLAND_DISPLAY=wayland-5
-
-  mkdir -p -m 700 "$XDG_RUNTIME_DIR"
-  weston --backend=headless-backend.so --socket=$WAYLAND_DISPLAY --idle-time=0 &
-  _w=$!
-
-  trap "kill $_w; wait" EXIT
-
-  meson test -C build --print-errorlogs
-)
-
-_pick() {
-  local p="$1" f d; shift
-  for f; do
-    d="$srcdir/$p/${f#$pkgdir/}"
-    mkdir -p "$(dirname "$d")"
-    mv "$f" "$d"
-    rmdir -p --ignore-fail-on-non-empty "$(dirname "$f")"
-  done
-}
-
-package_libadwaita-git() {
-  depends+=(libgtk-4.so)
-  provides=(libadwaita)
-  conflicts=(libadwaita)
+package() {
   provides+=(libadwaita-1.so)
 
   meson install -C build --destdir "$pkgdir"
 
   cd "$pkgdir"
 
-  _pick demo usr/bin/adwaita-1-demo
-  _pick demo usr/share/applications/org.gnome.Adwaita1.Demo.desktop
-  _pick demo usr/share/icons/hicolor/*/apps/org.gnome.Adwaita1.Demo[-.]*
-  _pick demo usr/share/metainfo/org.gnome.Adwaita1.Demo.metainfo.xml
-
-  _pick docs usr/share/doc
-}
-
-package_libadwaita-demos-git() {
-  pkgdesc+=" (demo applications)"
-  depends=(
-    glib2
-    glibc
-    gtk4
-    hicolor-icon-theme
-    libadwaita
-  )
-  provides=(libadwaita-demos)
-  conflicts=(libadwaita-demos)
-  mv demo/* "$pkgdir"
-}
-
-package_libadwaita-docs-git() {
-  pkgdesc+=" (documentation)"
-  depends=()
-  provides=(libadwaita-docs)
-  conflicts=(libadwaita-docs)
-  mv docs/* "$pkgdir"
 }
