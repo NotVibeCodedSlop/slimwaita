@@ -1,4 +1,6 @@
 # SlimWaita
+##### how it looks:
+<img width="1018" height="720" alt="example of how it looks" src="https://github.com/user-attachments/assets/7044e16d-e45e-4db0-afa9-2e603d674648" />
 
 SlimWaita is a fork of Adwaita that has been reskinned and well generaly modified (using AIs) to look more like KDE apps. And yes I have for no concrete reason just removed the about section. And also I did some weird hacks to have the hamburger menu expanded into a menu bar.
 Honestly if I didn't know I made this I would have thought its just QT.
