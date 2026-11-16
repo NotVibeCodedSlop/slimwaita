@@ -3,7 +3,7 @@
 _pkgname="slimwaita"
 pkgbase=slimwaita
 pkgname=slimwaita
-pkgver=1.10.0.r12.g0ffcd2c
+pkgver=1.0.0-29-gca3cabab
 pkgrel=1
 pkgdesc="SlimWaita is a fork of libadwaita"
 url="https://github.com/NotVibeCodedSlop/slimwaita"
